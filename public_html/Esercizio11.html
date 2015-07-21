@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Esercizio11</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="text/javascript">
+            const FILEURL = "netbeans-8.0.2-php-windows.exe";
+            var lblUrl = null;
+            var btnDownload = null;
+            var btnCancel = null;
+            var lblProgress = null;
+            var prgProgress = null;
+            var fileSize = 0;
+            var xhr = null;
+
+            function init() {
+                lblUrl = document.getElementById("lblUrl");
+                btnDownload = document.getElementById("btnDownload");
+                btnCancel = document.getElementById("btnCancel");
+                lblProgress = document.getElementById("lblProgress");
+                prgProgress = document.getElementById("prgProgress");
+
+                lblUrl.textContent = FILEURL;
+                btnDownload.disabled = false;
+                btnCancel.disabled = true;
+                prgProgress.value = 0;
+                lblProgress.textContent = prgProgress.value + "%";
+            }
+
+            function startDownload() {
+                init();
+                xhr = new XMLHttpRequest();
+                //xhr.addEventListener("loadstart", startProgress, false);
+                xhr.onloadstart = startProgress;
+                xhr.addEventListener("progress", updateProgress, false);
+                xhr.addEventListener("load", transferComplete, false);
+                xhr.addEventListener("error", transferFailed, false);
+                xhr.addEventListener("abort", transferCanceled, false);
+                // Esistono anche altri eventi. Vedasi: https://dvcs.w3.org/hg/xhr/raw-file/tip/Overview.html#events
+                xhr.open("get", FILEURL, true);
+                xhr.send();
+                btnCancel.disabled = false;
+                btnDownload.disabled = true;
+            }
+            
+            function startProgress(evt) {
+                updateProgress(evt); // medesimo comportamento
+                console.log("Download started");
+            }
+
+            function updateProgress(evt) {
+                if (evt.lengthComputable) {
+                    prgProgress.value = parseInt(evt.loaded / evt.total * 100);
+                    lblProgress.textContent = prgProgress.value + "% (" + (evt.loaded / (1024 * 1024)).toFixed(2) + " of " + (evt.total / (1024 * 1024)).toFixed(2) + " MB)";
+                }
+                else {
+                    prgProgress.value = null;
+                    lblProgress.textContent = (evt.loaded / (1024 * 1024)).toFixed(2) + "MB";
+                }
+            }
+
+            function transferComplete(evt) {
+                btnDownload.disabled = false;
+                btnCancel.disabled = true;
+                console.log("Download completed");
+            }
+
+            function transferFailed(evt) {
+                console.log("Download failed");
+                console.log(evt);
+            }
+
+            function transferCanceled(evt) {
+                console.log("Download canceled");
+            }
+
+            function cancelDownload() {
+                xhr.abort();
+                xhr = null;
+                init();
+            }
+        </script>
+    </head>
+    <body onload="init()">
+        <p>File: <span id="lblUrl"></span></p>
+        <p><button id="btnDownload" type="button" onclick="startDownload()">Scarica</button></p>
+        <p><button id="btnCancel" type="button" onclick="cancelDownload()">Annulla</button></p>
+        <p>Avanzamento: <span id="lblProgress"></span></p>
+        <progress id="prgProgress" max="100"></progress>
+    </body>
+</html>
